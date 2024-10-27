@@ -28,3 +28,5 @@ Next-Hop              {}
 Last update           {}
 Outbound Interface    {}
 """
+list1 = ospf_route.replace('via', '').replace(',', '').replace('[', '').replace(']', '').split()
+print(template.format(*list1))  # оператор * - позволяет "распаковать" список и передать его значения как аргументы (ex. [1, 2, 3] -> 1, 2, 3)
