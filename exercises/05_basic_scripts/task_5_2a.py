@@ -49,3 +49,23 @@ bin_ip = "00001010000000010000000111000011"
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 
 """
+str = input('Введите IP-сеть: ')
+
+border = str.find('/')
+net = str[:border].split('.')
+mask = int(str[border + 1:])
+
+net = [ int(x) for x in net ] # Переводим все строки-октеты адреса в int
+
+net = list('{:>08b}{:>08b}{:>08b}{:>08b}'.format(*net))
+del net[mask:]
+net = ''.join(net) + '0' * (32 - mask)
+
+print('\nNetwork:')
+print('{0:<10}{1:<10}{2:<10}{3:<10}\n{0:>08b}  {1:>08b}  {2:>08b}  {3:>08b}'.format(int(net[:8], 2), int(net[8:16], 2), int(net[16:24], 2), int(net[24:], 2)))
+
+
+full_mask = mask * '1' + (32 - mask) * '0'
+
+print('\nMask:\n/{}'.format(mask))
+print('{0:<10}{1:<10}{2:<10}{3:<10}\n{0:>08b}  {1:>08b}  {2:>08b}  {3:>08b}'.format(int(full_mask[:8], 2), int(full_mask[8:16], 2), int(full_mask[16:24], 2), int(full_mask[24:], 2)))

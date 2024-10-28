@@ -30,3 +30,19 @@ Out[1]: '11111111111111111111111111110000'
 
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 """
+str = input('Введите IP-сеть: ')
+
+border = str.find('/')
+net = str[:border].split('.')
+net = [ int(x) for x in net ] # Переводим все строки-октеты адреса в int
+mask = int(str[border + 1:])
+
+
+print('\nNetwork:')
+print('{0:<10}{1:<10}{2:<10}{3:<10}\n{0:>08b}  {1:>08b}  {2:>08b}  {3:>08b}'.format(*net))
+
+
+full_mask = mask * '1' + (32 - mask) * '0'
+
+print('\nMask:\n/{}'.format(mask))
+print('{0:<10}{1:<10}{2:<10}{3:<10}\n{0:>08b}  {1:>08b}  {2:>08b}  {3:>08b}'.format(int(full_mask[:8], 2), int(full_mask[8:16], 2), int(full_mask[16:24], 2), int(full_mask[24:], 2)))
