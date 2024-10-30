@@ -14,3 +14,21 @@ Outbound Interface    FastEthernet0/0
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 
 """
+str = """
+Prefix                {}
+AD/Metric             {}
+Next-Hop              {}
+Last update           {}
+Outbound Interface    {}
+"""
+
+with open('ospf.txt') as f:
+    for line in f:
+        line_list = line.split()
+
+        del line_list[3], line_list[0]
+        line_list_new = []
+        for line in line_list:
+            line_list_new.append(line.strip(',[]'))
+
+        print(str.format(*line_list_new))

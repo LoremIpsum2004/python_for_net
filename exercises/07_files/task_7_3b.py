@@ -17,3 +17,19 @@ Enter VLAN number: 10
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 
 """
+
+strings = []
+vlans = int(input('Какой VLAN показать: '))
+
+with open('CAM_table.txt') as f:
+    for line in f:
+        if 'DYNAMIC' in line:
+            strings.append(line.replace('DYNAMIC', '').split())
+    
+    for current_list in range(len(strings)):
+        strings[current_list][0] = int(strings[current_list][0])
+    strings.sort()
+
+    for i in range(len(strings)):
+        if strings[i][0] == vlans:
+            print('{:<9}{:<14}{:>11}'.format(*strings[i]))

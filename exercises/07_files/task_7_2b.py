@@ -16,4 +16,16 @@
 
 """
 
+from sys import argv
+
 ignore = ["duplex", "alias", "configuration"]
+
+with open(argv[1]) as conf, open(argv[2], 'w') as out:
+    for line in conf:
+        permission = True
+        for word in ignore:
+            if word in line:
+                permission = False
+        if not line.startswith('!') and permission:
+            #out.write(line.strip('\n') + '\n')
+            out.write(line)

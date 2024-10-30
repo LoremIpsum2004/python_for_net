@@ -20,3 +20,12 @@
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 
 """
+
+strings = []
+
+with open('CAM_table.txt') as f:
+    for line in f:
+        if 'DYNAMIC' in line:
+            strings.append(line.replace('DYNAMIC', '').split())
+    for i in range(len(strings)):
+        print('{:<9}{:<14}{:>11}'.format(*strings[i]))
