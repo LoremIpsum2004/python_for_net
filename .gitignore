@@ -36,3 +36,6 @@ Thumbs.db
 
 # Virual environments
 venv/
+
+# Папочка img в 11
+img/

@@ -43,7 +43,26 @@ def parse_cdp_neighbors(command_output):
     и с файлами и с выводом с оборудования.
     Плюс учимся работать с таким выводом.
     """
+    # x = command_output.find('Port ID')
+    # command_output = command_output[x + len('Port ID'):].strip()
 
+    # Конвертируем строку в список строк
+    command_output = command_output.split('\n')
+    
+    # Оставляем только вызов команды (там hostname) и вывод информации по интерфейсам
+    command_output = list(filter(lambda x: 'show cdp neighbors' in x or 'Eth' in x, command_output))
+
+    # Вытаскиваем hostname и заодно избавляемся от строки с вводом команды
+    hostname = command_output[0][:command_output.pop(0).find('>')]
+
+    result_dict = {}
+    command_output = [line.split() for line in command_output]
+    
+    for i, list_ in enumerate(command_output):
+        result_dict[tuple([hostname, list_[1] + list_[2]])] = tuple([list_[0], list_[-2] + list_[-1]])
+
+
+    return result_dict
 
 if __name__ == "__main__":
     with open("sh_cdp_n_sw1.txt") as f:
