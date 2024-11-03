@@ -17,3 +17,24 @@ IP-адрес считается доступным, если выполнени
 
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 """
+import subprocess
+import ipaddress
+
+def ping_ip_addresses(ip_list):
+    available_list = []
+    not_available_list = []
+
+    for ip in ip_list:
+        command = subprocess.run(['ping', str(ip)], stdout = subprocess.DEVNULL)
+        if command.returncode == 0:
+            available_list.append(ip)
+        else:
+            not_available_list.append(ip)
+
+    return tuple([available_list, not_available_list])
+
+if __name__ == '__main__':
+    addr1 = ipaddress.ip_address('192.168.0.1')
+    addr2 = ipaddress.ip_address('192.168.0.2')
+    addr3 = ipaddress.ip_address('192.168.0.3')
+    print(ping_ip_addresses([addr1, addr2, addr3]))
