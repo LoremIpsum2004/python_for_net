@@ -28,3 +28,25 @@ IP-адреса, диапазоны адресов и так далее, так 
 а не ввод пользователя.
 
 """
+import re
+from pprint import pprint
+
+def get_ip_from_cfg(filename):
+    regex = re.compile(
+                        r'interface (?P<intf>\S+)\n' \
+                        r'(?: .*\n)*?' \
+                        r' ip address (?P<ip>[0-9.]+) (?P<netmask>[0-9.]+)\n' \
+                        r'(?: .*\n)*?' \
+                        r'( ip address (?P<ip_second>[0-9.]+) (?P<netmask_second>[0-9.]+) secondary)?'
+                      )
+    text = open(filename).read()
+    result = {}
+    for enter in regex.finditer(text):
+        result[enter['intf']] = []
+        result[enter['intf']].append(enter.group('ip', 'netmask'))
+        if enter['ip_second']:
+            result[enter['intf']].append(enter.group('ip_second', 'netmask_second'))
+    return result
+
+if __name__ == '__main__':
+    pprint(get_ip_from_cfg('config_r2.txt'))
