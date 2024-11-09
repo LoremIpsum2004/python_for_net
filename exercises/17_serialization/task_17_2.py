@@ -44,8 +44,40 @@
 """
 
 import glob
+import re
+import csv
+
+def parse_sh_version(input):
+  '''
+  Принимает вывод sh version строкой,
+  возвращает (ios, image, uptime)
+  '''
+  result = []
+  result.append(re.search(r'Cisco IOS Software, [^,]+, Version ([\w\.()]+), RELEASE SOFT', input).group(1))
+  result.append(re.search(r'System image file is "([^"]+)"', input).group(1))
+  result.append(re.search(r'router uptime is (.+)', input).group(1))
+  return tuple(result)
+
+def write_inventory_to_csv(data_filenames, csv_filename):
+  '''
+  Получает список файлов с выводом sh version и имя файла CSV для вывода,
+  затем через parse_sh_version получаем ios, image и uptime. Также hostname
+  из имени файла. Все это записывается в CSV файл согласно headers.
+  sh_version_r3.txt
+  '''
+  with open(csv_filename, 'w', newline = '') as output:
+    writer = csv.writer(output)
+    writer.writerow(["hostname", "ios", "image", "uptime"])
+    for file in data_filenames:
+      row = []
+      row.append(re.search(r'sh_version_([^\.]+).txt', file).group(1))
+      row.extend(parse_sh_version(open(file).read()))
+      writer.writerow(row)
 
 sh_version_files = glob.glob("sh_vers*")
 # print(sh_version_files)
 
-headers = ["hostname", "ios", "image", "uptime"]
+
+if __name__ == '__main__':
+  write_inventory_to_csv(['sh_version_r1.txt', 'sh_version_r2.txt', 'sh_version_r3.txt'], 'output.csv')
+  pass
