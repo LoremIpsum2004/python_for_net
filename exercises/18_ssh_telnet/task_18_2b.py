@@ -93,8 +93,40 @@ R1(config)#a
 % Ambiguous command:  "a"
 """
 
+
+
+from netmiko import ConnectHandler
+import yaml
+import re
+from pprint import pprint
+
+errors_regex = re.compile(r'Invalid input detected|Incomplete command|Ambiguous command')
+
+def send_config_commands(device, config_commands, log = True):
+      correct = {}
+      incorrect = {}
+      with ConnectHandler(**device) as ssh:
+        if log:
+            print(f'Подключаюсь к {device['host']}...')
+        ssh.enable()
+        ssh.config_mode()
+        for command in config_commands:
+            out = ssh.send_command(command)
+            if errors_regex.search(out):
+                print(f'Команда "{command}" выполнилась с ошибкой "{out}" на устройстве {device['host']}')
+                incorrect[command] = out
+            else:
+                correct[command] = out
+      return (correct, incorrect)
+
 # списки команд с ошибками и без:
 commands_with_errors = ["logging 0255.255.1", "logging", "a"]
 correct_commands = ["logging buffered 20010", "ip http server"]
 
 commands = commands_with_errors + correct_commands
+
+devices = yaml.safe_load(open('devices.yaml'))
+
+if __name__ == '__main__':
+    for device in devices:
+        pprint(send_config_commands(device, commands))

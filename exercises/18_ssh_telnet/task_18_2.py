@@ -45,4 +45,21 @@ R1#
 с помощью функции send_config_commands.
 """
 
+from netmiko import ConnectHandler
+
+def send_config_commands(device, config_commands):
+    with ConnectHandler(**device) as ssh:
+        ssh.enable()
+        result = ssh.send_config_set(config_commands)
+        return result
+
 commands = ["logging 10.255.255.1", "logging buffered 20010", "no logging console"]
+
+r1 = {'device_type': 'cisco_ios',
+ 'ip': '192.168.100.1',
+ 'username': 'cisco',
+ 'password': 'cisco',
+ 'secret': 'cisco'}
+
+if __name__ == '__main__':
+    print(send_config_commands(r1, commands))

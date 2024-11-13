@@ -48,5 +48,31 @@ Out[16]: 'config term\nEnter configuration commands, one per line.  End with CNT
 
 """
 
+from task_18_1 import send_show_command
+from task_18_2 import send_config_commands
+from netmiko import ConnectHandler
+from pprint import pprint
+
 commands = ["logging 10.255.255.1", "logging buffered 20010", "no logging console"]
 command = "sh ip int br"
+
+
+def send_commands(device, *, show = None, config = None):
+    if bool(show) == bool(config):
+        raise(ValueError)
+    if show:
+        result = send_show_command(device, show)
+    elif config:
+        result = send_config_commands(device, config)
+    return result
+    
+r1 = {'device_type': 'cisco_ios',
+ 'ip': '192.168.100.1',
+ 'username': 'cisco',
+ 'password': 'cisco',
+ 'secret': 'cisco'}
+
+if __name__ == '__main__':
+    pprint(send_commands(r1, show = command))
+    print('\n\n')
+    pprint(send_commands(r1, config = commands))
