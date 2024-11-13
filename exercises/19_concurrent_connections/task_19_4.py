@@ -105,3 +105,49 @@ R3#
 
 Для выполнения задания можно создавать любые дополнительные функции.
 """
+
+import yaml
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from netmiko import ConnectHandler
+
+
+def send_show_command(ssh, command):
+    result = ''
+    x = ssh.send_command(command, strip_command = False, strip_prompt = False)
+    x = ''.join(reversed(x[:x.rfind('\n'):-1])) + x[:x.rfind('\n')]
+    result += x + '\n'
+    return result # Перемещаю hostname# в начало
+
+def send_conf_commands(ssh, commands):
+    result = ssh.send_config_set(commands)
+    return result
+
+def send_both_type_of_commands(device, show_com, conf_coms):
+    result = ''
+    with ConnectHandler(**device) as ssh:
+        ssh.enable()
+        if show_com:
+            result += send_show_command(ssh, show_com)
+        if conf_coms:
+            result += send_conf_commands(ssh, conf_coms)
+    return result
+
+
+def send_commands_to_devices(devices, filename, *, show = None, config = None, limit = 3):
+    '''
+    * devices - список словарей с параметрами подключения к устройствам
+    * filename - имя файла, в который будут записаны выводы всех команд
+    * show - команда show, которую нужно отправить (по умолчанию, значение None)
+    * config - команды конфигурационного режима, которые нужно отправить (по умолчанию None)
+    * limit - максимальное количество параллельных потоков (по умолчанию 3)
+    '''
+    if show and config:
+        raise(ValueError)
+
+    with open(filename, 'w') as f, ThreadPoolExecutor(max_workers = limit) as executor:
+        future_output = [ executor.submit(send_both_type_of_commands, device, show, config) for device in devices]
+        for out in as_completed(future_output):
+            f.write(out.result() + '\n')
+
+if __name__ == '__main__':
+    send_commands_to_devices(yaml.safe_load(open('devices.yaml')), 'output.txt', config = ['router ospf 55', 'network 0.0.0.0 255.255.255.255 area 0'])

@@ -47,3 +47,31 @@ commands = {
     "192.168.100.1": "sh ip int br",
     "192.168.100.2": "sh int desc",
 }
+
+import yaml
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from netmiko import ConnectHandler
+
+
+def send_show_command(device, command):
+    with ConnectHandler(**device) as ssh:
+        ssh.enable()
+        result = ssh.send_command(command, strip_command = False, strip_prompt = False)
+    return ''.join(reversed(result[:result.rfind('\n'):-1])) + result[:result.rfind('\n')] # Перемещаю hostname# в начало
+
+
+def send_command_to_devices(devices, commands_dict, filename, limit = 3):
+    '''
+    * devices - список словарей с параметрами подключения к устройствам
+    * commands_dict - словарь в котором указано на какое устройство отправлять
+      какую команду. Пример словаря - commands
+    * filename - имя файла, в который будут записаны выводы всех команд
+    * limit - максимальное количество параллельных потоков (по умолчанию 3)
+    '''
+    with open(filename, 'w') as f, ThreadPoolExecutor(max_workers = limit) as executor:
+        future_output = [ executor.submit(send_show_command, device, commands_dict[device['host']]) for device in devices]
+        for out in as_completed(future_output):
+            f.write(out.result() + '\n')
+
+if __name__ == '__main__':
+    send_command_to_devices(yaml.safe_load(open('devices.yaml')), commands, 'output.txt')
