@@ -18,7 +18,15 @@
 Указание текущего каталога, сломает работу других заданий/тестов.
 """
 import yaml
+from jinja2 import Environment, FileSystemLoader
+import os
 
+def generate_config(template, data_dict):
+    temp_dir, temp_file = os.path.split(template)
+    env = Environment(loader = FileSystemLoader(temp_dir), trim_blocks = True, lstrip_blocks = True)
+    temp = env.get_template(temp_file)
+
+    return temp.render(data_dict)
 
 # так должен выглядеть вызов функции
 if __name__ == "__main__":

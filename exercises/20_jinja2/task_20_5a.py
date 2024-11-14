@@ -38,6 +38,52 @@
 Они должны быть, но тест упрощен, чтобы было больше свободы выполнения.
 """
 
+from task_20_5 import create_vpn_config # 2 файла шаблона --> кортеж из 2-ух конфигов
+from netmiko import ConnectHandler
+import yaml
+import re
+
+device_params = {}
+
+def calculate_tunnel_id(r1, r2):
+    tunnel_id = 0
+    tunnel_intf_regex = re.compile(r'Tunnel ?(\d+)')
+    tunnel_ids_set = set()
+
+    with ConnectHandler(**r1) as ssh1, ConnectHandler(**r2) as ssh2:
+        for connection in (ssh1, ssh2):
+            connection.enable()
+            tunnel_ids_set.update([ int(id) for id in tunnel_intf_regex.findall(connection.send_command('sh ip int brief')) ])
+
+    print(tunnel_ids_set)
+
+    if tunnel_ids_set:
+        genexpr = (x for x in range(1, 100))
+        while next(genexpr) in tunnel_ids_set:
+            pass
+        tunnel_id = next(genexpr) - 1
+    
+    return tunnel_id
+
+def configure_vpn(src_device_params, dst_device_params, src_template, dst_template, vpn_data_dict):
+    '''
+    * src_device_params - словарь с параметрами подключения к устройству 1
+    * dst_device_params - словарь с параметрами подключения к устройству 2
+    * src_template - имя файла с шаблоном, который создает конфигурацию для строны 1
+    * dst_template - имя файла с шаблоном, который создает конфигурацию для строны 2
+    * vpn_data_dict - словарь со значениями, которые надо подставить в шаблоны
+    '''
+    vpn_data_dict['tun_num'] = calculate_tunnel_id(src_device_params, dst_device_params)
+    config_tuple = create_vpn_config(src_template, dst_template, vpn_data_dict)
+
+    out = []
+    for device, config in zip((src_device_params, dst_device_params), config_tuple):
+        with ConnectHandler(**device) as ssh:
+            ssh.enable()
+            out.append(ssh.send_config_set(config.split('\n')))
+
+    return tuple(out)
+
 data = {
     "tun_num": None,
     "wan_ip_1": "192.168.100.1",
@@ -45,3 +91,9 @@ data = {
     "tun_ip_1": "10.0.1.1 255.255.255.252",
     "tun_ip_2": "10.0.1.2 255.255.255.252",
 }
+
+if __name__ == '__main__':
+    with open('devices.yaml') as f:
+        device_params = yaml.safe_load(f)
+    
+    print(configure_vpn(device_params[0], device_params[1], 'templates/gre_ipsec_vpn_1.txt', 'templates/gre_ipsec_vpn_2.txt', data))
