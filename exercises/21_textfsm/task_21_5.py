@@ -38,3 +38,25 @@
 Проверить работу функции на примере вывода команды sh ip int br
 и устройствах из devices.yaml.
 """
+
+# * devices - список словарей с параметрами подключения к устройствам
+# * command - команда
+# * templates_path - путь к каталогу с шаблонами TextFSM
+# * limit - максимальное количество параллельных потоков (по умолчанию 3)
+
+from task_21_4 import send_and_parse_show_command
+from netmiko import ConnectHandler
+from concurrent.futures import ThreadPoolExecutor
+from itertools import repeat
+import yaml
+
+def send_and_parse_command_parallel(devices, command, templates_path, limit = 3):
+    with ThreadPoolExecutor(max_workers = limit) as executor:
+        result_full = [ executor.submit(send_and_parse_show_command, device, command, templates_path) for device in devices ]
+        output = { device["host"]: f.result() for device, f in zip(devices, result_full) }
+    return output
+
+if __name__ == '__main__':
+    with open('devices.yaml') as f:
+        devices_list = yaml.safe_load(f)
+    print(send_and_parse_command_parallel(devices_list, 'sh ip int br', 'templates'))

@@ -15,3 +15,16 @@
 
 Проверить работу шаблона с помощью функции parse_command_output из задания 21.1.
 """
+
+from task_21_1 import parse_command_output # template, command_output --> list [headers, content...]
+
+if __name__ == '__main__':
+    r1_params = {
+        "device_type": "cisco_ios",
+        "host": "192.168.100.1",
+        "username": "cisco",
+        "password": "cisco",
+        "secret": "cisco",
+    }
+    with open('output/sh_ip_dhcp_snooping.txt') as f:
+        print(parse_command_output('templates/sh_ip_dhcp_snooping.template', f.read()))
